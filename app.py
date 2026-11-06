@@ -2,8 +2,7 @@
 import streamlit as st
 import pandas as pd
 import re
-from datetime import date, datetime
-from io import BytesIO
+from datetime import date
 
 # =========================================================
 # CONFIGURACIÓN
@@ -17,78 +16,101 @@ st.set_page_config(
 )
 
 # =========================================================
-# ESTILOS
+# ESTILOS GENERALES
 # =========================================================
 
 st.markdown("""
 <style>
 
-/* GENERAL */
-
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+    --azul: #0753B8;
+    --azul-oscuro: #073B8C;
+    --morado: #5141A8;
+    --texto: #263653;
+    --texto-secundario: #65718A;
+    --fondo: #F5F7FC;
+    --borde: #E3E9F3;
+}
+
+/* FONDO Y TIPOGRAFÍA */
 
 html, body, [class*="css"] {
     font-family: 'DM Sans', sans-serif;
 }
 
 .stApp {
-    background-color: #F5F7FC;
+    background: var(--fondo);
+    color: var(--texto);
 }
 
 .block-container {
+    max-width: 1250px;
     padding-top: 2rem;
     padding-bottom: 3rem;
-    max-width: 1250px;
 }
 
-/* TÍTULOS */
+/* FORZAR COLORES LEGIBLES */
 
-h1, h2, h3 {
+.stApp p,
+.stApp li,
+.stApp label,
+.stApp span,
+.stApp div[data-testid="stMarkdownContainer"] p {
+    color: var(--texto);
+}
+
+.stApp h1,
+.stApp h2,
+.stApp h3,
+.stApp h4 {
     font-family: 'Space Grotesk', sans-serif;
-    color: #172B55;
+    color: #172B55 !important;
 }
 
-h1 {
-    font-weight: 700;
+.stApp small {
+    color: var(--texto-secundario);
 }
 
 /* ENCABEZADO */
 
 .hero-header {
     text-align: center;
-    padding: 25px 20px;
+    padding: 27px 20px;
     margin-bottom: 25px;
-    border-radius: 18px;
+    border-radius: 20px;
     background: linear-gradient(115deg, #073B8C, #5141A8);
     color: white;
+    box-shadow: 0 8px 25px rgba(35, 52, 125, 0.12);
 }
 
 .hero-header h3 {
     color: white !important;
     font-size: 28px;
     font-weight: 700;
-    margin-bottom: 12px;
+    margin: 0 0 12px 0;
 }
 
-.hero-subtitle {
-    color: white !important;
+.hero-header .hero-subtitle {
+    color: #FFFFFF !important;
     font-size: 17px;
-    margin-bottom: 5px;
+    margin: 0 0 5px 0;
 }
 
-.hero-caption {
+.hero-header .hero-caption {
     color: #DCE6FF !important;
     font-size: 12px;
-    margin-bottom: 0;
+    margin: 0;
 }
 
 /* NAVBAR */
 
 .st-key-navbar {
-    background: white;
-    border: 1px solid #E7EAF3;
-    border-radius: 14px;
-    padding: 10px 18px;
+    background: #FFFFFF;
+    border: 1px solid var(--borde);
+    border-radius: 15px;
+    padding: 9px 15px;
     margin-bottom: 30px;
     box-shadow: 0 3px 12px rgba(30, 50, 100, 0.04);
 }
@@ -101,89 +123,60 @@ h1 {
     font-weight: 600 !important;
     font-size: 14px !important;
     min-height: 43px;
-    transition: all 0.2s ease-in-out;
+    box-shadow: none !important;
+    transition: all 0.2s ease;
 }
 
 .st-key-navbar button:hover {
     background: #F0F2FF !important;
-    color: #5141A8 !important;
+    color: var(--morado) !important;
 }
 
 .st-key-navbar button[kind="primary"] {
-    color: #5141A8 !important;
-    border-bottom: 3px solid #5141A8 !important;
+    background: transparent !important;
+    color: var(--morado) !important;
+    border-bottom: 3px solid var(--morado) !important;
     font-weight: 700 !important;
 }
 
-/* BOTONES GENERALES */
+/* BOTONES */
 
-.stButton button {
-    border-radius: 10px;
-    font-weight: 600;
-    transition: 0.2s ease;
+.stButton button,
+.stDownloadButton button {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease;
 }
 
-.stButton button[kind="primary"] {
-    background: linear-gradient(100deg, #0753B8, #6551B8);
-    border: none;
+.stButton button[kind="primary"],
+.stDownloadButton button {
+    background: linear-gradient(100deg, #0753B8, #6551B8) !important;
+    color: #FFFFFF !important;
+    border: none !important;
 }
 
-.stButton button[kind="primary"]:hover {
+.stButton button[kind="primary"]:hover,
+.stDownloadButton button:hover {
     filter: brightness(1.08);
     box-shadow: 0 4px 12px rgba(65, 70, 170, 0.2);
-}
-
-/* TARJETAS */
-
-.info-card, .news-card {
-    background: white;
-    border: 1px solid #E5EAF5;
-    border-radius: 16px;
-    padding: 23px;
-    min-height: 190px;
-    transition: 0.2s ease;
-    margin-bottom: 12px;
-}
-
-.info-card:hover, .news-card:hover {
-    transform: translateY(-4px);
-    border-color: #8C83D8;
-    box-shadow: 0 8px 20px rgba(40, 50, 100, 0.08);
-}
-
-.info-card h3, .news-card h3 {
-    color: #253B72 !important;
-    font-size: 18px;
-}
-
-.info-card p, .news-card p {
-    color: #65718A !important;
-    font-size: 14px;
-    line-height: 1.6;
-}
-
-.news-label {
-    color: #6554B8;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
 }
 
 /* PORTADA */
 
 .welcome-banner {
     background: linear-gradient(115deg, #073B8C, #5141A8);
-    color: white;
     padding: 48px 42px;
     border-radius: 20px;
     margin-bottom: 35px;
+    box-shadow: 0 8px 25px rgba(35, 52, 125, 0.12);
 }
 
 .welcome-banner h1 {
-    color: white !important;
+    color: #FFFFFF !important;
     font-size: 39px;
     font-weight: 700;
     line-height: 1.2;
+    margin-top: 15px;
 }
 
 .welcome-banner p {
@@ -194,41 +187,215 @@ h1 {
 }
 
 .welcome-tag {
+    color: #D9E4FF !important;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 1.5px;
-    color: #D9E4FF;
+}
+
+/* TARJETAS */
+
+.info-card,
+.news-card {
+    background: #FFFFFF;
+    border: 1px solid var(--borde);
+    border-radius: 16px;
+    padding: 23px;
+    min-height: 190px;
+    transition: all 0.2s ease;
+    margin-bottom: 12px;
+}
+
+.info-card:hover,
+.news-card:hover {
+    transform: translateY(-4px);
+    border-color: #8C83D8;
+    box-shadow: 0 8px 20px rgba(40, 50, 100, 0.08);
+}
+
+.info-card h3,
+.news-card h3 {
+    color: #253B72 !important;
+    font-size: 18px;
+}
+
+.info-card p,
+.news-card p {
+    color: #65718A !important;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.news-label {
+    color: #6554B8 !important;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
+/* PANEL DE CONSULTA DE PLACAS */
+
+.search-panel {
+    background: #FFFFFF;
+    border: 1px solid var(--borde);
+    border-radius: 20px;
+    padding: 28px;
+    margin-top: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 5px 20px rgba(30, 50, 100, 0.05);
+}
+
+.search-panel h3 {
+    color: #253B72 !important;
+    margin-bottom: 8px;
+}
+
+.search-description {
+    color: #65718A !important;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.plate-example {
+    display: inline-block;
+    background: #F0F3FF;
+    color: #5141A8 !important;
+    border: 1px solid #DCE1FA;
+    border-radius: 8px;
+    padding: 7px 13px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-top: 8px;
+}
+
+/* INPUTS */
+
+.stTextInput label,
+.stSelectbox label,
+.stDateInput label,
+.stTextArea label,
+.stNumberInput label {
+    color: #344665 !important;
+    font-weight: 600 !important;
+}
+
+.stTextInput input,
+.stTextArea textarea,
+.stNumberInput input,
+.stDateInput input {
+    background: #FFFFFF !important;
+    color: #263653 !important;
+    border: 1px solid #CBD5E5 !important;
+    border-radius: 11px !important;
+    min-height: 45px;
+    box-shadow: none !important;
+}
+
+.stTextInput input::placeholder,
+.stTextArea textarea::placeholder {
+    color: #929DB0 !important;
+    opacity: 1;
+}
+
+.stTextInput input:focus,
+.stTextArea textarea:focus,
+.stNumberInput input:focus,
+.stDateInput input:focus {
+    border: 1px solid #6551B8 !important;
+    box-shadow: 0 0 0 3px rgba(101, 81, 184, 0.12) !important;
+}
+
+/* SELECTORES */
+
+.stSelectbox div[data-baseweb="select"] > div {
+    background: #FFFFFF !important;
+    border-color: #CBD5E5 !important;
+    border-radius: 10px !important;
+}
+
+.stSelectbox div[data-baseweb="select"] span {
+    color: #263653 !important;
+}
+
+/* CHECKBOX */
+
+.stCheckbox label,
+.stCheckbox p {
+    color: #344665 !important;
 }
 
 /* RESULTADOS */
 
 .result-card {
-    background: white;
-    border: 1px solid #E5EAF5;
-    border-radius: 15px;
-    padding: 22px;
-    margin-top: 15px;
+    background: #FFFFFF;
+    border: 1px solid var(--borde);
+    border-radius: 16px;
+    padding: 24px;
+    margin-top: 20px;
 }
 
 .result-title {
-    color: #5141A8;
-    font-size: 22px;
+    color: #5141A8 !important;
+    font-size: 24px;
     font-weight: 700;
 }
 
 .status-good {
-    color: #16845B;
+    color: #16845B !important;
     font-weight: 700;
 }
 
 .status-bad {
-    color: #C34848;
+    color: #C34848 !important;
     font-weight: 700;
 }
 
 .status-warning {
-    color: #B27A17;
+    color: #B27A17 !important;
     font-weight: 700;
+}
+
+/* MÉTRICAS */
+
+div[data-testid="stMetric"] {
+    background: #FFFFFF;
+    border: 1px solid var(--borde);
+    border-radius: 13px;
+    padding: 15px;
+}
+
+div[data-testid="stMetricLabel"] {
+    color: #65718A !important;
+}
+
+div[data-testid="stMetricValue"] {
+    color: #253B72 !important;
+}
+
+/* TABLAS */
+
+div[data-testid="stDataFrame"] {
+    background: #FFFFFF;
+    border-radius: 12px;
+}
+
+/* EXPANDERS Y CONTENEDORES */
+
+div[data-testid="stExpander"] {
+    background: #FFFFFF;
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+}
+
+div[data-testid="stExpander"] summary {
+    color: #263653 !important;
+}
+
+/* MENSAJES */
+
+div[data-testid="stAlert"] p {
+    color: inherit !important;
 }
 
 /* PIE DE PÁGINA */
@@ -241,25 +408,21 @@ h1 {
 }
 
 .footer-info h3 {
-    color: #253B72;
+    color: #253B72 !important;
+}
+
+.footer-info p {
+    color: #65718A !important;
 }
 
 .footer-info small {
-    color: #8993A9;
-}
-
-/* FORMULARIOS */
-
-div[data-testid="stTextInput"] input,
-div[data-testid="stDateInput"] input,
-div[data-testid="stSelectbox"] div[data-baseweb="select"] {
-    border-radius: 9px;
+    color: #8993A9 !important;
 }
 
 /* SEPARADORES */
 
 hr {
-    border-color: #E5EAF5;
+    border-color: #E5EAF5 !important;
 }
 
 </style>
@@ -379,17 +542,21 @@ if "registro" not in st.session_state:
     }
 
 
-if "pagina" not in st.session_state:
-    st.session_state.pagina = "Inicio"
+# =========================================================
+# ESTADO DE LA APLICACIÓN
+# =========================================================
 
-if "mostrar_resultado" not in st.session_state:
-    st.session_state.mostrar_resultado = None
+defaults = {
+    "pagina": "Inicio",
+    "resultado_registro": None,
+    "resultado_multas": None,
+    "solicitudes": [],
+    "pagos": []
+}
 
-if "solicitudes" not in st.session_state:
-    st.session_state.solicitudes = []
-
-if "pagos" not in st.session_state:
-    st.session_state.pagos = []
+for clave, valor in defaults.items():
+    if clave not in st.session_state:
+        st.session_state[clave] = valor
 
 
 # =========================================================
@@ -398,18 +565,6 @@ if "pagos" not in st.session_state:
 
 def dinero(valor):
     return f"${valor:,.0f}".replace(",", ".")
-
-
-def estado_color(estado):
-    estado = estado.lower()
-
-    if estado in ["vigente", "pagada"]:
-        return "status-good"
-
-    if estado in ["próximo a vencer", "pendiente"]:
-        return "status-warning"
-
-    return "status-bad"
 
 
 def consultar_placa(placa):
@@ -436,7 +591,9 @@ def total_pendiente(vehiculo):
 st.markdown("""
 <div class="hero-header">
     <h3>✈️ TRÁNSITO AÉREO COLOMBIANO</h3>
-    <p class="hero-subtitle">Movilidad aérea para un nuevo futuro.</p>
+    <p class="hero-subtitle">
+        Movilidad aérea para un nuevo futuro.
+    </p>
     <p class="hero-caption">
         Portal ciudadano · Proyecto de futuros imaginados · 2026
     </p>
@@ -445,7 +602,7 @@ st.markdown("""
 
 
 # =========================================================
-# NAVEGACIÓN
+# NAVBAR
 # =========================================================
 
 paginas = [
@@ -461,22 +618,24 @@ with st.container(key="navbar"):
 
     columnas = st.columns(len(paginas))
 
-    for columna, pagina_nombre in zip(columnas, paginas):
+    for columna, nombre_pagina in zip(columnas, paginas):
 
         with columna:
 
             if st.button(
-                pagina_nombre,
-                key=f"nav_{pagina_nombre}",
+                nombre_pagina,
+                key=f"nav_{nombre_pagina}",
                 type=(
                     "primary"
-                    if st.session_state.pagina == pagina_nombre
+                    if st.session_state.pagina == nombre_pagina
                     else "secondary"
                 ),
                 use_container_width=True
             ):
-                st.session_state.pagina = pagina_nombre
-                st.session_state.mostrar_resultado = None
+
+                st.session_state.pagina = nombre_pagina
+                st.session_state.resultado_registro = None
+                st.session_state.resultado_multas = None
                 st.rerun()
 
 
@@ -570,21 +729,6 @@ if pagina == "Inicio":
         </div>
         """, unsafe_allow_html=True)
 
-    st.markdown("---")
-
-    st.markdown("""
-    <div class="footer-info">
-        <h3>Tránsito Aéreo Colombiano</h3>
-        <p>
-            Construyendo una movilidad aérea segura,
-            organizada y sostenible.
-        </p>
-        <small>
-            Portal ciudadano · Proyecto de futuros imaginados · 2026
-        </small>
-    </div>
-    """, unsafe_allow_html=True)
-
 
 # =========================================================
 # SERVICIOS
@@ -593,6 +737,7 @@ if pagina == "Inicio":
 elif pagina == "Servicios":
 
     st.title("Servicios ciudadanos")
+
     st.write(
         "Realiza tus trámites relacionados con la movilidad aérea."
     )
@@ -728,36 +873,58 @@ elif pagina == "Registro nacional":
         "registrados en el territorio colombiano."
     )
 
-    st.markdown("### Consulta por placa")
+    st.markdown("""
+    <div class="search-panel">
+        <h3>🔎 Consulta de vehículos</h3>
+        <p class="search-description">
+            Ingresa la placa de identificación para consultar
+            los datos del vehículo, su propietario y documentación.
+        </p>
+        <span class="plate-example">ABC 123 A</span>
+    </div>
+    """, unsafe_allow_html=True)
 
-    placa_busqueda = st.text_input(
-        "Ingresa la placa del vehículo",
-        placeholder="Ej. ABC123A",
-        max_chars=7,
-        key="buscador_registro"
-    ).upper().strip()
+    with st.form("form_busqueda_placa"):
 
-    if st.button(
-        "Consultar vehículo",
-        type="primary",
-        use_container_width=True
-    ):
+        placa_busqueda = st.text_input(
+            "Número de placa",
+            placeholder="Escribe aquí la placa del vehículo",
+            max_chars=7
+        )
 
-        if not re.fullmatch(r"[A-Z]{3}[0-9]{3}[A-Z]", placa_busqueda):
+        consultar = st.form_submit_button(
+            "✈️ Consultar vehículo",
+            type="primary",
+            use_container_width=True
+        )
 
-            st.session_state.mostrar_resultado = None
-            st.error("La placa debe tener el formato ABC123A.")
+        if consultar:
 
-        elif placa_busqueda in st.session_state.registro:
+            placa_busqueda = placa_busqueda.upper().strip()
 
-            st.session_state.mostrar_resultado = placa_busqueda
+            if not re.fullmatch(
+                r"[A-Z]{3}[0-9]{3}[A-Z]",
+                placa_busqueda
+            ):
 
-        else:
+                st.session_state.resultado_registro = None
+                st.error(
+                    "Formato incorrecto. La placa debe tener "
+                    "tres letras, tres números y una letra. Ejemplo: ABC123A."
+                )
 
-            st.session_state.mostrar_resultado = None
-            st.error("No se encontró ningún vehículo con esa placa.")
+            elif placa_busqueda in st.session_state.registro:
 
-    placa_resultado = st.session_state.mostrar_resultado
+                st.session_state.resultado_registro = placa_busqueda
+
+            else:
+
+                st.session_state.resultado_registro = None
+                st.error(
+                    "No encontramos un vehículo registrado con esa placa."
+                )
+
+    placa_resultado = st.session_state.resultado_registro
 
     if placa_resultado:
 
@@ -767,6 +934,11 @@ elif pagina == "Registro nacional":
 
         st.markdown(
             f'<div class="result-title">✈️ Vehículo {placa_resultado}</div>',
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            '<div class="result-card">',
             unsafe_allow_html=True
         )
 
@@ -816,18 +988,19 @@ elif pagina == "Registro nacional":
 
         if vehiculo["multas"]:
 
-            for indice, multa in enumerate(vehiculo["multas"]):
+            for multa in vehiculo["multas"]:
 
-                col1, col2, col3 = st.columns([3, 1, 1])
+                with st.container(border=True):
 
-                with col1:
-                    st.write(multa["descripcion"])
+                    col1, col2 = st.columns([3, 1])
 
-                with col2:
-                    st.write(dinero(multa["valor"]))
+                    with col1:
+                        st.write(multa["descripcion"])
 
-                with col3:
-                    st.write(multa["estado"])
+                    with col2:
+                        st.write(dinero(multa["valor"]))
+
+                    st.write(f"Estado: {multa['estado']}")
 
         else:
 
@@ -835,19 +1008,19 @@ elif pagina == "Registro nacional":
 
         st.markdown("---")
 
-        pendiente = total_pendiente(vehiculo)
-
         st.metric(
             "Total de comparendos pendientes",
-            dinero(pendiente)
+            dinero(total_pendiente(vehiculo))
         )
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
     st.markdown("### Vehículos registrados en el sistema")
 
     busqueda_tabla = st.text_input(
-        "Filtrar por placa o propietario",
-        placeholder="Escribe para filtrar..."
+        "Filtrar registros",
+        placeholder="Buscar por placa o propietario..."
     ).lower()
 
     filas = []
@@ -868,12 +1041,15 @@ elif pagina == "Registro nacional":
             })
 
     if filas:
+
         st.dataframe(
             pd.DataFrame(filas),
             use_container_width=True,
             hide_index=True
         )
+
     else:
+
         st.info("No se encontraron vehículos.")
 
 
@@ -890,43 +1066,56 @@ elif pagina == "Multas":
         "y revisa los valores pendientes de pago."
     )
 
-    placa_multa = st.text_input(
-        "Ingresa la placa del vehículo",
-        placeholder="Ej. ABC123A",
-        max_chars=7,
-        key="buscador_multas"
-    ).upper().strip()
+    st.markdown("""
+    <div class="search-panel">
+        <h3>⚠️ Consulta de comparendos</h3>
+        <p class="search-description">
+            Introduce la placa de tu vehículo para consultar
+            las infracciones y obligaciones pendientes.
+        </p>
+        <span class="plate-example">ABC 123 A</span>
+    </div>
+    """, unsafe_allow_html=True)
 
-    if st.button(
-        "Consultar comparendos",
-        type="primary",
-        use_container_width=True
-    ):
+    with st.form("form_busqueda_multas"):
 
-        vehiculo = consultar_placa(placa_multa)
+        placa_multa = st.text_input(
+            "Número de placa",
+            placeholder="Escribe aquí la placa del vehículo",
+            max_chars=7
+        )
 
-        if vehiculo is None:
+        consultar_multa = st.form_submit_button(
+            "Consultar comparendos",
+            type="primary",
+            use_container_width=True
+        )
 
-            st.session_state.mostrar_resultado = None
-            st.error("Placa inválida o vehículo no registrado.")
+        if consultar_multa:
 
-        else:
+            placa_multa = placa_multa.upper().strip()
 
-            st.session_state.mostrar_resultado = placa_multa
+            vehiculo = consultar_placa(placa_multa)
 
-    placa_resultado = st.session_state.mostrar_resultado
+            if vehiculo is None:
 
-    if placa_resultado and placa_resultado in st.session_state.registro:
+                st.session_state.resultado_multas = None
+                st.error("Placa inválida o vehículo no registrado.")
+
+            else:
+
+                st.session_state.resultado_multas = placa_multa
+
+    placa_resultado = st.session_state.resultado_multas
+
+    if placa_resultado:
 
         vehiculo = st.session_state.registro[placa_resultado]
 
         st.markdown("---")
-
         st.markdown(f"## Comparendos de {placa_resultado}")
 
-        st.write(
-            f"**Propietario:** {vehiculo['propietario']}"
-        )
+        st.write(f"**Propietario:** {vehiculo['propietario']}")
 
         if vehiculo["multas"]:
 
@@ -938,19 +1127,12 @@ elif pagina == "Multas":
 
                     with col1:
 
-                        st.markdown(
-                            f"**{multa['descripcion']}**"
-                        )
-
-                        st.write(
-                            f"Estado: {multa['estado']}"
-                        )
+                        st.markdown(f"**{multa['descripcion']}**")
+                        st.write(f"Estado: {multa['estado']}")
 
                     with col2:
 
-                        st.markdown(
-                            f"### {dinero(multa['valor'])}"
-                        )
+                        st.markdown(f"### {dinero(multa['valor'])}")
 
                     if multa["estado"] == "Pendiente":
 
@@ -1260,14 +1442,9 @@ elif pagina == "Noticias":
 
             st.write(noticia["descripcion"])
 
-            st.button(
-                "Leer noticia",
-                key=f"noticia_{noticia['titulo']}"
-            )
-
 
 # =========================================================
-# PIE DE PÁGINA GENERAL
+# PIE DE PÁGINA
 # =========================================================
 
 st.markdown("---")
