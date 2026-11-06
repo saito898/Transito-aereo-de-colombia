@@ -10,7 +10,6 @@ from datetime import date
 
 st.set_page_config(
     page_title="Tránsito Aéreo Colombiano",
-    color_title= #FFFFFF,
     page_icon="✈️",
     layout="wide",
     initial_sidebar_state="collapsed"
