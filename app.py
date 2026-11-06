@@ -496,8 +496,8 @@ st.markdown(
 # =========================================================
 # DATOS DE EJEMPLO
 # =========================================================
-if "registro" not in st.session_state:
-    st.session_state.registro = {
+def datos_iniciales():
+    return {
         "ABC123A": {
             "propietario": "Mariana Restrepo Gómez", "documento": "1039456782",
             "modelo": "AeroX One", "fabricante": "AeroTech Colombia",
@@ -537,6 +537,27 @@ if "registro" not in st.session_state:
             "multas": [{"descripcion": "Estacionamiento en zona no autorizada", "valor": 180000, "estado": "Pendiente"}],
         },
     }
+
+
+def migrar_vehiculo(veh):
+    """Convierte registros guardados con el formato antiguo al formato actual."""
+    if "documentos" not in veh:
+        veh["documentos"] = {
+            clave: veh.get(f"vencimiento_{clave}", "")
+            for clave in ("licencia", "soat", "revision")
+        }
+    for clave in ("licencia", "soat", "revision"):
+        veh["documentos"].setdefault(clave, "")
+    veh.setdefault("multas", [])
+    return veh
+
+
+if "registro" not in st.session_state:
+    st.session_state.registro = datos_iniciales()
+else:
+    # Sesión abierta con una versión anterior del código: se adapta sin perder pagos.
+    for _placa, _veh in st.session_state.registro.items():
+        migrar_vehiculo(_veh)
 
 defaults = {
     "pagina": "Inicio",
